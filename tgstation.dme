@@ -6752,6 +6752,7 @@
 #include "modular_skyrat\modules\company_imports\code\armament_datums\put_a_donk_on_it.dm"
 #include "modular_skyrat\modules\company_imports\code\armament_datums\sol_defense.dm"
 #include "modular_skyrat\modules\company_imports\code\armament_datums\vitezstvi_ammo.dm"
+#include "modular_skyrat\modules\company_imports\code\armament_datums\kersei_applied_theories.dm"
 #include "modular_skyrat\modules\company_imports\code\datums\cargo_order.dm"
 #include "modular_skyrat\modules\company_imports\code\datums\cargo_pack.dm"
 #include "modular_skyrat\modules\company_imports\code\datums\hud.dm"
