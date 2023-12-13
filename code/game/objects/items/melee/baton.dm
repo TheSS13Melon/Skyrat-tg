@@ -42,22 +42,22 @@
 	/// Boolean on whether people with chunky fingers can use this baton.
 	var/chunky_finger_usable = FALSE
 
-	/// The context to show when the baton is active and targetting a living thing
+	/// The context to show when the baton is active and targeting a living thing
 	var/context_living_target_active = "Stun"
 
-	/// The context to show when the baton is active and targetting a living thing in combat mode
+	/// The context to show when the baton is active and targeting a living thing in combat mode
 	var/context_living_target_active_combat_mode = "Stun"
 
-	/// The context to show when the baton is inactive and targetting a living thing
+	/// The context to show when the baton is inactive and targeting a living thing
 	var/context_living_target_inactive = "Prod"
 
-	/// The context to show when the baton is inactive and targetting a living thing in combat mode
+	/// The context to show when the baton is inactive and targeting a living thing in combat mode
 	var/context_living_target_inactive_combat_mode = "Attack"
 
-	/// The RMB context to show when the baton is active and targetting a living thing
+	/// The RMB context to show when the baton is active and targeting a living thing
 	var/context_living_rmb_active = "Attack"
 
-	/// The RMB context to show when the baton is inactive and targetting a living thing
+	/// The RMB context to show when the baton is inactive and targeting a living thing
 	var/context_living_rmb_inactive = "Attack"
 
 /obj/item/melee/baton/Initialize(mapload)
@@ -95,6 +95,15 @@
 		if(BATON_ATTACKING)
 			finalize_baton_attack(target, user, modifiers)
 
+/obj/item/melee/baton/apply_fantasy_bonuses(bonus)
+	. = ..()
+	stamina_damage = modify_fantasy_variable("stamina_damage", stamina_damage, bonus * 4)
+
+
+/obj/item/melee/baton/remove_fantasy_bonuses(bonus)
+	stamina_damage = reset_fantasy_variable("stamina_damage", stamina_damage)
+	return ..()
+
 /obj/item/melee/baton/add_item_context(datum/source, list/context, atom/target, mob/living/user)
 	if (isturf(target))
 		return NONE
@@ -127,7 +136,7 @@
 
 	if(!chunky_finger_usable && ishuman(user))
 		var/mob/living/carbon/human/potential_chunky_finger_human = user
-		if(potential_chunky_finger_human.check_chunky_fingers() && user.is_holding(src) && !HAS_TRAIT(user, TRAIT_CHUNKYFINGERS_IGNORE_BATON) && (user.mind && !HAS_TRAIT(user.mind, TRAIT_CHUNKYFINGERS_IGNORE_BATON)))
+		if(potential_chunky_finger_human.check_chunky_fingers() && user.is_holding(src) && !HAS_MIND_TRAIT(user, TRAIT_CHUNKYFINGERS_IGNORE_BATON))
 			balloon_alert(potential_chunky_finger_human, "fingers are too big!")
 			return BATON_ATTACK_DONE
 

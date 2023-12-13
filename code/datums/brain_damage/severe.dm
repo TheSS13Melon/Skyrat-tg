@@ -120,6 +120,16 @@
 	paralysis_type = "legs"
 	resilience = TRAUMA_RESILIENCE_ABSOLUTE
 
+/datum/brain_trauma/severe/paralysis/hemiplegic
+	random_gain = FALSE
+	resilience = TRAUMA_RESILIENCE_ABSOLUTE
+
+/datum/brain_trauma/severe/paralysis/hemiplegic/left
+	paralysis_type = "left"
+
+/datum/brain_trauma/severe/paralysis/hemiplegic/right
+	paralysis_type = "right"
+
 /datum/brain_trauma/severe/narcolepsy
 	name = "Narcolepsy"
 	desc = "Patient may involuntarily fall asleep during normal activities."
@@ -133,7 +143,7 @@
 
 	var/sleep_chance = 1
 	var/drowsy = !!owner.has_status_effect(/datum/status_effect/drowsiness)
-	if(owner.m_intent == MOVE_INTENT_RUN)
+	if(owner.move_intent == MOVE_INTENT_RUN)
 		sleep_chance += 2
 	if(drowsy)
 		sleep_chance += 3

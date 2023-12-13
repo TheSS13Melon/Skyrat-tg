@@ -1,7 +1,7 @@
 /obj/machinery/igniter
 	name = "igniter"
 	desc = "It's useful for igniting plasma."
-	icon = 'icons/obj/machines/basic_machines.dmi'
+	icon = 'icons/obj/machines/floor.dmi'
 	icon_state = "igniter0"
 	base_icon_state = "igniter"
 	plane = FLOOR_PLANE
@@ -162,6 +162,7 @@ MAPPING_DIRECTIONAL_HELPERS(/obj/machinery/sparker, 26)
 	spark_system.set_up(2, 1, src)
 	spark_system.attach(src)
 	register_context()
+	find_and_hang_on_wall()
 
 /obj/machinery/sparker/Destroy()
 	QDEL_NULL(spark_system)

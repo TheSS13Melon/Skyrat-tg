@@ -1,3 +1,7 @@
+#define UPPER_LIP "Upper"
+#define MIDDLE_LIP "Middle"
+#define LOWER_LIP "Lower"
+
 /obj/item/lipstick
 	gender = PLURAL
 	name = "red lipstick"
@@ -9,6 +13,8 @@
 	var/open = FALSE
 	/// Actual color of the lipstick, also gets applied to the human
 	var/lipstick_color = COLOR_RED
+	/// The style of lipstick. Upper, middle, or lower lip. Default is middle.
+	var/style = "lipstick"
 	/// A trait that's applied while someone has this lipstick applied, and is removed when the lipstick is removed
 	var/lipstick_trait
 
@@ -22,6 +28,10 @@
 	if(vname == NAMEOF(src, open))
 		update_appearance(UPDATE_ICON)
 
+/obj/item/lipstick/examine(mob/user)
+	. = ..()
+	. += "Alt-click to change the style."
+
 /obj/item/lipstick/update_icon_state()
 	icon_state = "lipstick[open ? "_uncap" : null]"
 	inhand_icon_state = "lipstick[open ? "open" : null]"
@@ -34,6 +44,42 @@
 	var/mutable_appearance/colored_overlay = mutable_appearance(icon, "lipstick_uncap_color")
 	colored_overlay.color = lipstick_color
 	. += colored_overlay
+
+/obj/item/lipstick/AltClick(mob/user)
+	. = ..()
+	if(.)
+		return TRUE
+
+	if(!user.can_perform_action(src, NEED_DEXTERITY|NEED_HANDS|ALLOW_RESTING))
+		return FALSE
+
+	return display_radial_menu(user)
+
+/obj/item/lipstick/proc/display_radial_menu(mob/living/carbon/human/user)
+	var/style_options = list(
+		UPPER_LIP = icon('icons/hud/radial.dmi', UPPER_LIP),
+		MIDDLE_LIP = icon('icons/hud/radial.dmi', MIDDLE_LIP),
+		LOWER_LIP = icon('icons/hud/radial.dmi', LOWER_LIP),
+	)
+	var/pick = show_radial_menu(user, src, style_options, custom_check = CALLBACK(src, PROC_REF(check_menu), user), radius = 36, require_near = TRUE)
+	if(!pick)
+		return TRUE
+
+	switch(pick)
+		if(MIDDLE_LIP)
+			style = "lipstick"
+		if(LOWER_LIP)
+			style = "lipstick_lower"
+		if(UPPER_LIP)
+			style = "lipstick_upper"
+	return TRUE
+
+/obj/item/lipstick/proc/check_menu(mob/living/user)
+	if(!istype(user))
+		return FALSE
+	if(user.incapacitated() || !user.is_holding(src))
+		return FALSE
+	return TRUE
 
 /obj/item/lipstick/purple
 	name = "purple lipstick"
@@ -106,7 +152,7 @@
 	if(target == user)
 		user.visible_message(span_notice("[user] does [user.p_their()] lips with \the [src]."), \
 			span_notice("You take a moment to apply \the [src]. Perfect!"))
-		target.update_lips("lipstick", lipstick_color, lipstick_trait)
+		target.update_lips(style, lipstick_color, lipstick_trait)
 		return
 
 	user.visible_message(span_warning("[user] begins to do [target]'s lips with \the [src]."), \
@@ -115,7 +161,7 @@
 		return
 	user.visible_message(span_notice("[user] does [target]'s lips with \the [src]."), \
 		span_notice("You apply \the [src] on [target]'s lips."))
-	target.update_lips("lipstick", lipstick_color, lipstick_trait)
+	target.update_lips(style, lipstick_color, lipstick_trait)
 
 //you can wipe off lipstick with paper!
 /obj/item/paper/attack(mob/M, mob/user)
@@ -154,11 +200,9 @@
 
 /obj/item/razor/proc/shave(mob/living/carbon/human/skinhead, location = BODY_ZONE_PRECISE_MOUTH)
 	if(location == BODY_ZONE_PRECISE_MOUTH)
-		skinhead.facial_hairstyle = "Shaved"
+		skinhead.set_facial_hairstyle("Shaved", update = TRUE)
 	else
-		skinhead.hairstyle = "Skinhead"
-
-	skinhead.update_body_parts()
+		skinhead.set_hairstyle("Skinhead", update = TRUE)
 	playsound(loc, 'sound/items/welder2.ogg', 20, TRUE)
 
 /obj/item/razor/attack(mob/target_mob, mob/living/user, params)
@@ -194,8 +238,7 @@
 				user.visible_message(span_notice("[user] tries to change [human_target]'s facial hairstyle using [src]."), span_notice("You try to change [human_target]'s facial hairstyle using [src]."))
 				if(new_style && do_after(user, 6 SECONDS, target = human_target))
 					user.visible_message(span_notice("[user] successfully changes [human_target]'s facial hairstyle using [src]."), span_notice("You successfully change [human_target]'s facial hairstyle using [src]."))
-					human_target.facial_hairstyle = new_style
-					human_target.update_body_parts(update_limb_data = TRUE)
+					human_target.set_facial_hairstyle(new_style, update = TRUE)
 					return
 			else
 				return
@@ -248,8 +291,7 @@
 			user.visible_message(span_notice("[user] tries to change [human_target]'s hairstyle using [src]."), span_notice("You try to change [human_target]'s hairstyle using [src]."))
 			if(new_style && do_after(user, 6 SECONDS, target = human_target))
 				user.visible_message(span_notice("[user] successfully changes [human_target]'s hairstyle using [src]."), span_notice("You successfully change [human_target]'s hairstyle using [src]."))
-				human_target.hairstyle = new_style
-				human_target.update_body_parts(update_limb_data = TRUE)
+				human_target.set_hairstyle(new_style, update = TRUE)
 				return
 		else
 			if(!get_location_accessible(human_target, location))
@@ -280,3 +322,16 @@
 				return
 	return ..()
 */
+
+/obj/item/razor/surgery
+	name = "surgical razor"
+	desc = "A medical grade razor. Its precision blades provide a clean shave for surgical preparation."
+	icon = 'icons/obj/cosmetic.dmi'
+	icon_state = "medrazor"
+
+/obj/item/razor/surgery/get_surgery_tool_overlay(tray_extended)
+	return "razor"
+
+#undef UPPER_LIP
+#undef MIDDLE_LIP
+#undef LOWER_LIP

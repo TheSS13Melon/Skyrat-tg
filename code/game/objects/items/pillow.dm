@@ -32,6 +32,15 @@
 		force_wielded = 10, \
 	)
 
+	var/static/list/slapcraft_recipe_list = list(\
+		/datum/crafting_recipe/pillow_suit, /datum/crafting_recipe/pillow_hood,\
+		)
+
+	AddComponent(
+		/datum/component/slapcrafting,\
+		slapcraft_recipes = slapcraft_recipe_list,\
+	)
+
 /obj/item/pillow/Destroy(force)
 	. = ..()
 	QDEL_NULL(pillow_trophy)
@@ -88,7 +97,7 @@
 /obj/item/pillow/examine(mob/user)
 	. = ..()
 	if(bricked)
-		. += span_info("[p_they(TRUE)] feel[p_s()] unnaturally heavy.")
+		. += span_info("[p_They()] feel[p_s()] unnaturally heavy.")
 	if(pillow_trophy)
 		. += span_notice("Alt-click to remove the tag!")
 

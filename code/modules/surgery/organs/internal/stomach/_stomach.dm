@@ -30,6 +30,9 @@
 	///The rate that the stomach will transfer reagents to the body
 	var/metabolism_efficiency = 0.05 // the lowest we should go is 0.025
 
+	/// Multiplier for hunger rate
+	var/hunger_modifier = 1
+
 	var/operated = FALSE //whether the stomach's been repaired with surgery and can be fixed again or not
 
 /obj/item/organ/internal/stomach/Initialize(mapload)
@@ -107,13 +110,13 @@
 
 	//The stomach is damage has nutriment but low on theshhold, lo prob of vomit
 	if(SPT_PROB(0.0125 * damage * nutri_vol * nutri_vol, seconds_per_tick))
-		body.vomit(damage)
+		body.vomit(VOMIT_CATEGORY_DEFAULT, lost_nutrition = damage)
 		to_chat(body, span_warning("Your stomach reels in pain as you're incapable of holding down all that food!"))
 		return
 
 	// the change of vomit is now high
 	if(damage > high_threshold && SPT_PROB(0.05 * damage * nutri_vol * nutri_vol, seconds_per_tick))
-		body.vomit(damage)
+		body.vomit(VOMIT_CATEGORY_DEFAULT, lost_nutrition = damage)
 		to_chat(body, span_warning("Your stomach reels in pain as you're incapable of holding down all that food!"))
 
 /obj/item/organ/internal/stomach/proc/handle_hunger(mob/living/carbon/human/human, seconds_per_tick, times_fired)
@@ -154,6 +157,7 @@
 			if(SPT_PROB(round(-human.satiety/77), seconds_per_tick))
 				human.set_jitter_if_lower(10 SECONDS)
 			hunger_rate = 3 * HUNGER_FACTOR
+		hunger_rate *= hunger_modifier
 		hunger_rate *= human.physiology.hunger_mod
 		human.adjust_nutrition(-hunger_rate * seconds_per_tick)
 
@@ -210,6 +214,7 @@
 
 ///This gets called after the owner takes a bite of food
 /obj/item/organ/internal/stomach/proc/after_eat(atom/edible)
+	SEND_SIGNAL(src, COMSIG_STOMACH_AFTER_EAT, edible) // SKYRAT EDIT ADDITION - Hemophage Organs
 	return
 
 /obj/item/organ/internal/stomach/proc/handle_disgust(mob/living/carbon/human/disgusted, seconds_per_tick, times_fired)
@@ -229,7 +234,7 @@
 			if(SPT_PROB(pukeprob, seconds_per_tick)) //iT hAndLeS mOrE ThaN PukInG
 				disgusted.adjust_confusion(2.5 SECONDS)
 				disgusted.adjust_stutter(2 SECONDS)
-				disgusted.vomit(10, distance = 0, vomit_type = NONE)
+				disgusted.vomit(VOMIT_CATEGORY_DEFAULT, distance = 0)
 			disgusted.set_dizzy_if_lower(10 SECONDS)
 		if(disgust >= DISGUST_LEVEL_DISGUSTED)
 			if(SPT_PROB(13, seconds_per_tick))
@@ -284,11 +289,22 @@
 /obj/item/organ/internal/stomach/cybernetic
 	name = "basic cybernetic stomach"
 	desc = "A basic device designed to mimic the functions of a human stomach"
+	failing_desc = "seems to be broken."
 	icon_state = "stomach-c"
-	organ_flags = ORGAN_SYNTHETIC
+	organ_flags = ORGAN_ROBOTIC
 	maxHealth = STANDARD_ORGAN_THRESHOLD * 0.5
-	var/emp_vulnerability = 80 //Chance of permanent effects if emp-ed.
 	metabolism_efficiency = 0.035 // not as good at digestion
+	var/emp_vulnerability = 80 //Chance of permanent effects if emp-ed.
+
+/obj/item/organ/internal/stomach/cybernetic/emp_act(severity)
+	. = ..()
+	if(. & EMP_PROTECT_SELF)
+		return
+	if(!COOLDOWN_FINISHED(src, severe_cooldown)) //So we cant just spam emp to kill people.
+		owner.vomit(vomit_flags = (MOB_VOMIT_MESSAGE | MOB_VOMIT_HARM))
+		COOLDOWN_START(src, severe_cooldown, 10 SECONDS)
+	if(prob(emp_vulnerability/severity)) //Chance of permanent effects
+		organ_flags |= ORGAN_EMP //Starts organ faliure - gonna need replacing soon.
 
 /obj/item/organ/internal/stomach/cybernetic/tier2
 	name = "cybernetic stomach"
@@ -308,15 +324,19 @@
 	emp_vulnerability = 20
 	metabolism_efficiency = 0.1
 
-/obj/item/organ/internal/stomach/cybernetic/emp_act(severity)
-	. = ..()
-	if(. & EMP_PROTECT_SELF)
-		return
-	if(!COOLDOWN_FINISHED(src, severe_cooldown)) //So we cant just spam emp to kill people.
-		owner.vomit(stun = FALSE)
-		COOLDOWN_START(src, severe_cooldown, 10 SECONDS)
-	if(prob(emp_vulnerability/severity)) //Chance of permanent effects
-		organ_flags |= ORGAN_SYNTHETIC_EMP //Starts organ faliure - gonna need replacing soon.
+/obj/item/organ/internal/stomach/cybernetic/surplus
+	name = "surplus prosthetic stomach"
+	desc = "A mechanical plastic oval that utilizes sulfuric acid instead of stomach acid. \
+		Very fragile, with painfully slow metabolism.\
+		Offers no protection against EMPs."
+	icon_state = "stomach-c-s"
+	maxHealth = STANDARD_ORGAN_THRESHOLD * 0.35
+	emp_vulnerability = 100
+	metabolism_efficiency = 0.025
 
+//surplus organs are so awful that they explode when removed, unless failing
+/obj/item/organ/internal/stomach/cybernetic/surplus/Initialize(mapload)
+	. = ..()
+	AddElement(/datum/element/dangerous_surgical_removal)
 
 #undef STOMACH_METABOLISM_CONSTANT

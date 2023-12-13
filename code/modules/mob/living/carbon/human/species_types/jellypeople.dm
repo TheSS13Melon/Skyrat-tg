@@ -10,10 +10,10 @@
 	name = "\improper Jellyperson"
 	plural_form = "Jellypeople"
 	id = SPECIES_JELLYPERSON
-	species_traits = list(
-		MUTCOLORS,
-	)
+	examine_limb_id = SPECIES_JELLYPERSON
+	inherent_biotypes = MOB_ORGANIC|MOB_HUMANOID|MOB_SLIME
 	inherent_traits = list(
+		TRAIT_MUTANT_COLORS,
 		TRAIT_TOXINLOVER,
 		TRAIT_NOBLOOD,
 	)
@@ -24,13 +24,9 @@
 	meat = /obj/item/food/meat/slab/human/mutant/slime
 	exotic_blood = /datum/reagent/toxin/slimejelly
 	blood_deficiency_drain_rate = JELLY_REGEN_RATE + BLOOD_DEFICIENCY_MODIFIER
-	var/datum/action/innate/regenerate_limbs/regenerate_limbs
-	var/datum/action/innate/alter_form/alter_form //SKYRAT EDIT ADDITION - CUSTOMIZATION
-	liked_food = MEAT | BUGS
-	toxic_food = NONE
 	coldmod = 6   // = 3x cold damage
 	heatmod = 0.5 // = 1/4x heat damage
-	payday_modifier = 0.75
+	payday_modifier = 1.0
 	changesource_flags = MIRROR_BADMIN | WABBAJACK | MIRROR_PRIDE | MIRROR_MAGIC | RACE_SWAP | ERT_SPAWN | SLIME_EXTRACT
 	inherent_factions = list(FACTION_SLIME)
 	species_language_holder = /datum/language_holder/jelly
@@ -44,6 +40,8 @@
 		BODY_ZONE_R_LEG = /obj/item/bodypart/leg/right/jelly,
 		BODY_ZONE_CHEST = /obj/item/bodypart/chest/jelly,
 	)
+	var/datum/action/innate/regenerate_limbs/regenerate_limbs
+	var/datum/action/innate/alter_form/alter_form //SKYRAT EDIT ADDITION - CUSTOMIZATION
 
 /datum/species/jelly/on_species_gain(mob/living/carbon/new_jellyperson, datum/species/old_species, pref_load)
 	. = ..()
@@ -185,9 +183,6 @@
 	name = "\improper Slimeperson"
 	plural_form = "Slimepeople"
 	id = SPECIES_SLIMEPERSON
-	species_traits = list(
-		MUTCOLORS,
-	)
 	hair_color = "mutcolor"
 	hair_alpha = 150
 	facial_hair_alpha = 150
@@ -206,6 +201,11 @@
 		BODY_ZONE_CHEST = /obj/item/bodypart/chest/slime,
 	)
 
+/datum/species/jelly/slime/get_physical_attributes()
+	return "Slimepeople have jelly for blood and their vacuoles can extremely quickly convert plasma to it if they're breathing it in.\
+		They can then use the excess blood to split off an excess body, which their consciousness can transfer to at will or on death.\
+		Most things that are toxic heal them, but most things that prevent toxicity damage them!"
+
 /datum/species/jelly/slime/on_species_loss(mob/living/carbon/C)
 	if(slime_split)
 		slime_split.Remove(C)
@@ -215,6 +215,7 @@
 	// so if someone mindswapped into them, they'd still be shared.
 	bodies = null
 	C.blood_volume = min(C.blood_volume, BLOOD_VOLUME_NORMAL)
+	UnregisterSignal(C, COMSIG_LIVING_DEATH)
 	..()
 
 /datum/species/jelly/slime/on_species_gain(mob/living/carbon/C, datum/species/old_species)
@@ -230,20 +231,25 @@
 		else
 			bodies |= C
 
-/datum/species/jelly/slime/spec_death(gibbed, mob/living/carbon/human/H)
-	if(slime_split)
-		if(!H.mind || !H.mind.active)
-			return
+	RegisterSignal(C, COMSIG_LIVING_DEATH, PROC_REF(on_death_move_body))
 
-		var/list/available_bodies = (bodies - H)
-		for(var/mob/living/L in available_bodies)
-			if(!swap_body.can_swap(L))
-				available_bodies -= L
+/datum/species/jelly/slime/proc/on_death_move_body(mob/living/carbon/human/source, gibbed)
+	SIGNAL_HANDLER
 
-		if(!LAZYLEN(available_bodies))
-			return
+	if(!slime_split)
+		return
+	if(!source.mind?.active)
+		return
 
-		swap_body.swap_to_dupe(H.mind, pick(available_bodies))
+	var/list/available_bodies = bodies - source
+	for(var/mob/living/other_body as anything in available_bodies)
+		if(!swap_body.can_swap(other_body))
+			available_bodies -= other_body
+
+	if(!length(available_bodies))
+		return
+
+	swap_body.swap_to_dupe(source.mind, pick(available_bodies))
 
 //If you're cloned you get your body pool back
 /datum/species/jelly/slime/copy_properties_from(datum/species/jelly/slime/old_species)
@@ -282,12 +288,12 @@
 	if(!isslimeperson(H))
 		return
 	CHECK_DNA_AND_SPECIES(H)
-	H.visible_message("<span class='notice'>[owner] gains a look of \
-		concentration while standing perfectly still.</span>",
-		"<span class='notice'>You focus intently on moving your body while \
-		standing perfectly still...</span>")
+	H.visible_message(
+		span_notice("[owner] gains a look of concentration while standing perfectly still."),
+		span_notice("You focus intently on moving your body while standing perfectly still..."),
+	)
 
-	H.notransform = TRUE
+	ADD_TRAIT(src, TRAIT_NO_TRANSFORM, REF(src))
 
 	if(do_after(owner, delay = 6 SECONDS, target = owner, timed_action_flags = IGNORE_HELD_ITEM))
 		if(H.blood_volume >= BLOOD_VOLUME_SLIME_SPLIT)
@@ -297,7 +303,7 @@
 	else
 		to_chat(H, span_warning("...but fail to stand perfectly still!"))
 
-	H.notransform = FALSE
+	REMOVE_TRAIT(src, TRAIT_NO_TRANSFORM, REF(src))
 
 /datum/action/innate/split_body/proc/make_dupe()
 	var/mob/living/carbon/human/H = owner
@@ -316,7 +322,7 @@
 	spare.Move(get_step(H.loc, pick(NORTH,SOUTH,EAST,WEST)))
 
 	H.blood_volume *= 0.45
-	H.notransform = 0
+	REMOVE_TRAIT(H, TRAIT_NO_TRANSFORM, REF(src))
 
 	var/datum/species/jelly/slime/origin_datum = H.dna.species
 	origin_datum.bodies |= spare
@@ -326,10 +332,10 @@
 
 	H.transfer_quirk_datums(spare)
 	H.mind.transfer_to(spare)
-	spare.visible_message("<span class='warning'>[H] distorts as a new body \
-		\"steps out\" of [H.p_them()].</span>",
-		"<span class='notice'>...and after a moment of disorentation, \
-		you're besides yourself!</span>")
+	spare.visible_message(
+		span_warning("[H] distorts as a new body \"steps out\" of [H.p_them()]."),
+		span_notice("...and after a moment of disorentation, you're besides yourself!"),
+	)
 
 
 /datum/action/innate/swap_body
@@ -506,6 +512,10 @@
 	/// The cooldown of us using exteracts
 	COOLDOWN_DECLARE(extract_cooldown)
 
+/datum/species/jelly/luminescent/get_physical_attributes()
+	return "Luminescent are able to integrate slime extracts into themselves for wondrous effects. \
+		Most things that are toxic heal them, but most things that prevent toxicity damage them!"
+
 //Species datums don't normally implement destroy, but JELLIES SUCK ASS OUT OF A STEEL STRAW and have to i guess
 /datum/species/jelly/luminescent/Destroy(force)
 	current_extract = null
@@ -674,6 +684,10 @@
 	examine_limb_id = SPECIES_JELLYPERSON
 	/// Special "project thought" telepathy action for stargazers.
 	var/datum/action/innate/project_thought/project_action
+
+/datum/species/jelly/stargazer/get_physical_attributes()
+	return "Stargazers can link others' minds with their own, creating a private communication channel. \
+		Most things that are toxic heal them, but most things that prevent toxicity damage them!"
 
 /datum/species/jelly/stargazer/on_species_gain(mob/living/carbon/grant_to, datum/species/old_species)
 	. = ..()

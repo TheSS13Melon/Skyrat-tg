@@ -135,7 +135,7 @@
 			var/datum/outfit/ctf/class = ctf_gear[key]
 			var/datum/radial_menu_choice/option = new
 			option.image  = image(icon = initial(class.icon), icon_state = initial(class.icon_state))
-			option.info = "<span class='boldnotice'>[initial(class.class_description)]</span>"
+			option.info = span_boldnotice("[initial(class.class_description)]")
 			display_classes[key] = option
 
 		sort_list(display_classes)
@@ -151,6 +151,15 @@
 	new_team_member.prefs.safe_transfer_prefs_to(player_mob, is_antag = TRUE)
 	if(player_mob.dna.species.outfit_important_for_life)
 		player_mob.set_species(/datum/species/human)
+
+	var/datum/mind/new_member_mind = new_team_member.mob.mind
+	if(new_member_mind?.current)
+		player_mob.AddComponent( \
+			/datum/component/temporary_body, \
+			old_mind = new_member_mind, \
+			old_body = new_member_mind.current, \
+		)
+
 	player_mob.ckey = new_team_member.ckey
 	if(isnull(ctf_player_component))
 		var/datum/component/ctf_player/player_component = player_mob.mind.AddComponent(/datum/component/ctf_player, team, ctf_game, ammo_type)
@@ -256,8 +265,18 @@
 		anchored = TRUE // Avoid directly assigning to anchored and prefer to use set_anchored() on normal circumstances.
 		return
 	//passing means the user picked up the flag so we can now apply this
+	to_chat(user, span_userdanger("Take \the [initial(name)] to your team's controller!"))
 	user.set_anchored(TRUE)
 	user.status_flags &= ~CANPUSH
+
+/obj/item/ctf_flag/attackby(obj/item/item, mob/user, params)
+	if(!istype(item, /obj/item/ctf_flag))
+		return ..()
+
+	var/obj/item/ctf_flag/flag = item
+	if(flag.team != team)
+		to_chat(user, span_userdanger("Take \the [initial(flag.name)] to your team's controller!"))
+		user.playsound_local(get_turf(user), 'sound/machines/buzz-sigh.ogg', 100, vary = FALSE, use_reverb = FALSE)
 
 /obj/item/ctf_flag/dropped(mob/user)
 	..()
@@ -497,11 +516,17 @@
 		message_admins("[key_name_admin(user)] has [ctf_enabled ? "enabled" : "disabled"] CTF!")
 	else if(automated)
 		message_admins("CTF has finished a round and automatically restarted.")
-		notify_ghosts("CTF has automatically restarted after a round finished in [initial(ctf_area.name)]!",'sound/effects/ghost2.ogg')
+		notify_ghosts(
+			"CTF has automatically restarted after a round finished in [initial(ctf_area.name)]!",
+			'sound/effects/ghost2.ogg',
+		)
 	else
 		message_admins("The players have spoken! Voting has enabled CTF!")
 	if(!automated)
-		notify_ghosts("CTF has been [ctf_enabled? "enabled" : "disabled"] in [initial(ctf_area.name)]!",'sound/effects/ghost2.ogg')
+		notify_ghosts(
+			"CTF has been [ctf_enabled? "enabled" : "disabled"] in [initial(ctf_area.name)]!",
+			'sound/effects/ghost2.ogg',
+		)
 
 #undef CTF_LOADING_UNLOADED
 #undef CTF_LOADING_LOADING

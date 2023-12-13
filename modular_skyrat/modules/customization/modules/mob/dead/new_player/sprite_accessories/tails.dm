@@ -56,7 +56,7 @@
 /datum/sprite_accessory/tails/monkey/default
 	name = "Monkey"
 	icon_state = "monkey"
-	icon = 'icons/mob/species/monkey/monkey_tail.dmi'
+	icon = 'icons/mob/human/species/monkey/monkey_tail.dmi'
 	recommended_species = list(SPECIES_HUMAN, SPECIES_SYNTH, SPECIES_FELINE, SPECIES_MAMMAL, SPECIES_MONKEY, SPECIES_GHOUL)
 	color_src = FALSE
 	organ_type = /obj/item/organ/external/tail/monkey
@@ -262,6 +262,10 @@
 	name = "Plug"
 	icon_state = "plugtail"
 
+/datum/sprite_accessory/tails/mammal/wagging/plug/scorpion
+	name = "Scorpion Plug"
+	icon_state = "scorptail"
+
 /datum/sprite_accessory/tails/mammal/wagging/rabbit
 	name = "Rabbit"
 	icon_state = "rabbit"
@@ -308,6 +312,11 @@
 /datum/sprite_accessory/tails/mammal/wagging/big/shade/striped
 	name = "Shade (Striped)"
 	icon_state = "shadekinlongstriped_large"
+
+/datum/sprite_accessory/tails/mammal/wagging/big/ringtail
+	name = "Ring Tail (Long)"
+	icon_state = "bigring_large"
+	color_src = USE_MATRIXED_COLORS
 
 /datum/sprite_accessory/tails/mammal/wagging/akula/akula
 	name = "Akula"
@@ -420,3 +429,7 @@
 	name = "Slim reptile"
 	icon_state = "reptileslim"
 	color_src = USE_ONE_COLOR
+
+/datum/sprite_accessory/tails/mammal/wagging/australian_shepherd
+	name = "Australian Shepherd"
+	icon_state = "australianshepherd"

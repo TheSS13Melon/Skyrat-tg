@@ -7,7 +7,7 @@
 	name = "external organ"
 	desc = "An external organ that is too external."
 
-	organ_flags = ORGAN_EDIBLE
+	organ_flags = ORGAN_ORGANIC | ORGAN_EDIBLE
 	visual = TRUE
 
 	///The overlay datum that actually draws stuff on the limb
@@ -82,21 +82,20 @@
 		return
 
 	if(bodypart_overlay.imprint_on_next_insertion) //We only want this set *once*
-
-		// SKYRAT EDIT - Customization - ORIGINAL: bodypart_overlay.set_appearance_from_name(receiver.dna.features[bodypart_overlay.feature_key])
-		if(receiver.dna.features[bodypart_overlay.feature_key])
-			bodypart_overlay.set_appearance_from_name(receiver.dna.features[bodypart_overlay.feature_key])
-
+		var/feature_name = receiver.dna.features[bodypart_overlay.feature_key]
+		if (isnull(feature_name))
+			bodypart_overlay.set_appearance_from_dna(receiver.dna) // SKYRAT EDIT CHANGE - ORIGINAL: feature_name = receiver.dna.species.external_organs[type]
+		// SKYRAT EDIT CHANGE START - Puts the following line in an else block
 		else
-			bodypart_overlay.set_appearance_from_dna(receiver.dna)
-		// SKYRAT EDIT END
+			bodypart_overlay.set_appearance_from_name(feature_name)
+		// SKYRAT EDIT CHANGE END
 		bodypart_overlay.imprint_on_next_insertion = FALSE
 
 	ownerlimb = limb
 	add_to_limb(ownerlimb)
 
 	if(external_bodytypes)
-		limb.synchronize_bodytypes(receiver)
+		receiver.synchronize_bodytypes()
 
 	receiver.update_body_parts()
 
@@ -110,6 +109,11 @@
 
 	if(organ_owner)
 		organ_owner.update_body_parts()
+
+
+/obj/item/organ/external/on_remove(mob/living/carbon/organ_owner, special)
+	. = ..()
+	color = bodypart_overlay.draw_color // so a pink felinid doesn't drop a gray tail
 
 ///Transfers the organ to the limb, and to the limb's owner, if it has one.
 /obj/item/organ/external/transfer_to_limb(obj/item/bodypart/bodypart, mob/living/carbon/bodypart_owner)
@@ -133,7 +137,7 @@
 	ownerlimb.external_organs -= src
 	ownerlimb.remove_bodypart_overlay(bodypart_overlay)
 	if(ownerlimb.owner && external_bodytypes)
-		ownerlimb.synchronize_bodytypes(ownerlimb.owner)
+		ownerlimb.owner.synchronize_bodytypes()
 	ownerlimb = null
 	return ..()
 

@@ -121,6 +121,10 @@ GLOBAL_VAR_INIT(revolutionary_win, FALSE)
 	var/list/datum/team/brother_team/pre_brother_teams = list()
 	var/const/min_team_size = 2
 
+/datum/dynamic_ruleset/roundstart/traitorbro/forget_startup()
+	pre_brother_teams = list()
+	return ..()
+
 /datum/dynamic_ruleset/roundstart/traitorbro/pre_execute(population)
 	. = ..()
 	var/num_teams = (get_antag_cap(population)/min_team_size) * (scaled_times + 1) // 1 team per scaling
@@ -226,6 +230,7 @@ GLOBAL_VAR_INIT(revolutionary_win, FALSE)
 	scaling_cost = 9
 	requirements = list(101,101,60,30,30,25,20,15,10,10)
 	antag_cap = list("denominator" = 24)
+	ruleset_lazy_templates = list(LAZY_TEMPLATE_KEY_HERETIC_SACRIFICE)
 
 
 /datum/dynamic_ruleset/roundstart/heretics/pre_execute(population)
@@ -632,16 +637,17 @@ GLOBAL_VAR_INIT(revolutionary_win, FALSE)
 
 /datum/dynamic_ruleset/roundstart/nuclear/clown_ops/pre_execute()
 	. = ..()
-	if(.)
-		var/obj/machinery/nuclearbomb/syndicate/syndicate_nuke = locate() in GLOB.nuke_list
-		if(syndicate_nuke)
-			var/turf/nuke_turf = get_turf(syndicate_nuke)
-			if(nuke_turf)
-				new /obj/machinery/nuclearbomb/syndicate/bananium(nuke_turf)
-				qdel(syndicate_nuke)
-		for(var/datum/mind/clowns in assigned)
-			clowns.set_assigned_role(SSjob.GetJobType(/datum/job/clown_operative))
-			clowns.special_role = ROLE_CLOWN_OPERATIVE
+	if(!.)
+		return
+
+	var/list/nukes = SSmachines.get_machines_by_type(/obj/machinery/nuclearbomb/syndicate)
+	for(var/obj/machinery/nuclearbomb/syndicate/nuke as anything in nukes)
+		new /obj/machinery/nuclearbomb/syndicate/bananium(nuke.loc)
+		qdel(nuke)
+
+	for(var/datum/mind/clowns in assigned)
+		clowns.set_assigned_role(SSjob.GetJobType(/datum/job/clown_operative))
+		clowns.special_role = ROLE_CLOWN_OPERATIVE
 
 //////////////////////////////////////////////
 //                                          //

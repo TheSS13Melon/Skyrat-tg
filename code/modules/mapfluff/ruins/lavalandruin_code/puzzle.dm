@@ -197,7 +197,7 @@
 /obj/structure/puzzle_element
 	name = "mysterious pillar"
 	desc = "puzzling..."
-	icon = 'icons/obj/lavaland/artefacts.dmi'
+	icon = 'icons/obj/mining_zones/artefacts.dmi'
 	icon_state = "puzzle_pillar"
 	anchored = FALSE
 	density = TRUE
@@ -295,7 +295,7 @@
 
 /obj/effect/sliding_puzzle/prison/dispense_reward()
 	prisoner.forceMove(get_turf(src))
-	prisoner.notransform = FALSE
+	REMOVE_TRAIT(prisoner, TRAIT_NO_TRANSFORM, element_type)
 	prisoner = null
 
 //Some armor so it's harder to kill someone by mistake.
@@ -317,7 +317,7 @@
 /obj/item/prisoncube
 	name = "Prison Cube"
 	desc = "Dusty cube with humanoid imprint on it."
-	icon = 'icons/obj/lavaland/artefacts.dmi'
+	icon = 'icons/obj/mining_zones/artefacts.dmi'
 	icon_state = "prison_cube"
 
 /obj/item/prisoncube/afterattack(atom/target, mob/user, proximity_flag, click_parameters)
@@ -344,7 +344,7 @@
 		return FALSE
 
 	//First grab the prisoner and move them temporarily into the generator so they won't get thrown around.
-	prisoner.notransform = TRUE
+	ADD_TRAIT(prisoner, TRAIT_NO_TRANSFORM, cube.element_type)
 	prisoner.forceMove(cube)
 	to_chat(prisoner,span_userdanger("You're trapped by the prison cube! You will remain trapped until someone solves it."))
 

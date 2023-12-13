@@ -3,11 +3,8 @@
 	name = "\improper Lizardperson"
 	plural_form = "Lizardfolk"
 	id = SPECIES_LIZARD
-	species_traits = list(
-		MUTCOLORS,
-	)
 	inherent_traits = list(
-		TRAIT_CAN_USE_FLIGHT_POTION,
+		TRAIT_MUTANT_COLORS,
 		TRAIT_TACKLING_TAILED_DEFENDER,
 	)
 	inherent_biotypes = MOB_ORGANIC|MOB_HUMANOID|MOB_REPTILE
@@ -22,17 +19,14 @@
 	mutanttongue = /obj/item/organ/internal/tongue/lizard
 	coldmod = 1.5
 	heatmod = 0.67
-	payday_modifier = 0.75
+	payday_modifier = 1.0
 	changesource_flags = MIRROR_BADMIN | WABBAJACK | MIRROR_PRIDE | MIRROR_MAGIC | RACE_SWAP | ERT_SPAWN | SLIME_EXTRACT
 	species_cookie = /obj/item/food/meat/slab
 	meat = /obj/item/food/meat/slab/human/mutant/lizard
 	skinned_type = /obj/item/stack/sheet/animalhide/lizard
 	exotic_bloodtype = "L"
-	disliked_food = GRAIN | DAIRY | CLOTH | GROSS
-	liked_food = GORE | MEAT | SEAFOOD | NUTS | BUGS
 	inert_mutation = /datum/mutation/human/firebreath
 	death_sound = 'sound/voice/lizard/deathsound.ogg'
-	wing_types = list(/obj/item/organ/external/wings/functional/dragon)
 	species_language_holder = /datum/language_holder/lizard
 	digitigrade_customization = DIGITIGRADE_OPTIONAL
 
@@ -93,6 +87,10 @@
 		'sound/voice/lizard/lizard_scream_3.ogg',
 	)
 
+/datum/species/lizard/get_physical_attributes()
+	return "Lizardpeople can withstand slightly higher temperatures than most species, but they are very vulnerable to the cold \
+		and can't regulate their body-temperature internally, making the vacuum of space extremely deadly to them."
+
 /datum/species/lizard/get_species_description()
 	return "The militaristic Lizardpeople hail originally from Tizira, but have grown \
 		throughout their centuries in the stars to possess a large spacefaring \
@@ -139,13 +137,11 @@ Lizard subspecies: ASHWALKERS
 /datum/species/lizard/ashwalker
 	name = "Ash Walker"
 	id = SPECIES_LIZARD_ASH
+	examine_limb_id = SPECIES_LIZARD
 	mutantlungs = /obj/item/organ/internal/lungs/lavaland
 	mutantbrain = /obj/item/organ/internal/brain/primitive
-	species_traits = list(
-		MUTCOLORS,
-	)
 	inherent_traits = list(
-		//TRAIT_LITERATE,
+		TRAIT_MUTANT_COLORS,
 		TRAIT_VIRUSIMMUNE,
 		TRAIT_FORBID_MINING_SHUTTLE_CONSOLE_OUTSIDE_STATION,
 	)
@@ -160,6 +156,10 @@ Lizard subspecies: ASHWALKERS
 		BODY_ZONE_L_LEG = /obj/item/bodypart/leg/left/lizard,
 		BODY_ZONE_R_LEG = /obj/item/bodypart/leg/right/lizard,
 	)
+
+/datum/species/lizard/get_physical_attributes()
+	return "Ash Walkers are identical to lizardpeople in almost all aspects. \
+		Unlike them, they're always digitigrade, they can breathe Lavaland's often noxious atmosphere and resist viruses. They are usually illiterate."
 
 /*
 Lizard subspecies: SILVER SCALED
@@ -189,6 +189,11 @@ Lizard subspecies: SILVER SCALED
 	var/old_eye_color_left
 	///See above
 	var/old_eye_color_right
+
+/datum/species/lizard/silverscale/get_physical_attributes()
+	return "Silver Scales are to lizardpeople what angels are to humans. \
+		Mostly identical, they are holy, don't breathe, don't get viruses, their hide cannot be pierced, love the taste of wine, \
+		and their tongue allows them to turn into a statue, for some reason."
 
 /datum/species/lizard/silverscale/on_species_gain(mob/living/carbon/human/new_silverscale, datum/species/old_species, pref_load)
 	old_mutcolor = new_silverscale.dna.features["mcolor"]

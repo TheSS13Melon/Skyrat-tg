@@ -218,12 +218,13 @@ GLOBAL_LIST_EMPTY(bodycontainers) //Let them act as spawnpoints for revenants an
 	beeper = !beeper
 	to_chat(user, span_notice("You turn the speaker function [beeper ? "on" : "off"]."))
 
-/obj/structure/bodycontainer/morgue/emag_act(mob/user)
+/obj/structure/bodycontainer/morgue/emag_act(mob/user, obj/item/card/emag/emag_card)
 	if(obj_flags & EMAGGED)
-		return
-	to_chat(user, span_warning("You overload [src]'s alert system."))
+		return FALSE
+	balloon_alert(user, "alert system overloaded")
 	obj_flags |= EMAGGED
 	update_appearance(UPDATE_ICON)
+	return TRUE
 
 /obj/structure/bodycontainer/morgue/update_icon_state()
 	if(!connected || connected.loc != src) // Open or tray is gone.
@@ -267,7 +268,7 @@ GLOBAL_LIST_EMPTY(crematoriums)
 /obj/structure/bodycontainer/crematorium
 	name = "crematorium"
 	desc = "A human incinerator. Works well on barbecue nights."
-	icon = 'icons/obj/machines/basic_machines.dmi'
+	icon = 'icons/obj/machines/crematorium.dmi'
 	icon_state = "crema1"
 	base_icon_state = "crema"
 	dir = SOUTH
@@ -358,9 +359,12 @@ GLOBAL_LIST_EMPTY(crematoriums)
 	desc = "A human incinerator. Works well during ice cream socials."
 
 /obj/structure/bodycontainer/crematorium/creamatorium/cremate(mob/user)
-	var/list/icecreams = new()
+	var/list/icecreams = list()
 	for(var/mob/living/i_scream as anything in get_all_contents_type(/mob/living))
-		var/obj/item/food/icecream/IC = new(null, list(ICE_CREAM_MOB = list(null, i_scream.name)))
+		var/obj/item/food/icecream/IC = new /obj/item/food/icecream(
+			loc = null,
+			prefill_flavours = list(ICE_CREAM_MOB = list(null, i_scream.name))
+		)
 		icecreams += IC
 	. = ..()
 	for(var/obj/IC in icecreams)
@@ -372,7 +376,7 @@ GLOBAL_LIST_EMPTY(crematoriums)
  * For overriding only
  */
 /obj/structure/tray
-	icon = 'icons/obj/machines/basic_machines.dmi'
+	icon = 'icons/obj/machines/crematorium.dmi'
 	density = TRUE
 	anchored = TRUE
 	pass_flags_self = PASSTABLE | LETPASSTHROW

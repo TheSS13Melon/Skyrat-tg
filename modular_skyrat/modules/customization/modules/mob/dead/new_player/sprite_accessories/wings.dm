@@ -6,7 +6,7 @@
 * Check some of the wings that make use of them for examples on how to make it look decent.
 */
 /datum/sprite_accessory/wings
-	icon = 'icons/mob/species/wings.dmi'
+	icon = 'icons/mob/human/species/wings.dmi'
 	generic = "Wings"
 	key = "wings"
 	color_src = USE_ONE_COLOR
@@ -193,6 +193,10 @@
 	name = "Harpy (Alt)"
 	icon_state = "harpyalt"
 
+/datum/sprite_accessory/wings/mammal/harpy/alt/fluffless
+	name = "Harpy (Alt - Fluffless)"
+	icon_state = "harpyalt_fluffless"
+
 /datum/sprite_accessory/wings/mammal/harpy/bat
 	name = "Harpy (Bat)"
 	icon_state = "harpybat"
@@ -201,9 +205,18 @@
 	name = "Harpy (Top - Alt)"
 	icon_state = "harpyalt_top"
 
+/datum/sprite_accessory/wings/mammal/top/harpy/alt/fluffless
+	name = "Harpy (Top - Alt - Fluffless)"
+	icon_state = "harpyalt_fluffless_top"
+
 /datum/sprite_accessory/wings/mammal/top/harpy/bat
 	name = "Harpy (Top - Bat)"
 	icon_state = "harpybat_top"
+
+/datum/sprite_accessory/wings/mammal/pterodactyl
+	name = "Pterodactyl"
+	icon_state = "pterodactyl"
+	color_src = USE_MATRIXED_COLORS
 
 /datum/sprite_accessory/wings/mammal/insect
 	name = "Insectoid"
@@ -387,3 +400,8 @@
 /datum/sprite_accessory/wings/moth/moffra
 	name = "Moth (Moffra)"
 	icon_state = "moffra"
+
+/datum/sprite_accessory/wings/mammal/top/arfel_harpy
+	name = "Arfel Harpy"
+	icon_state = "arfelharpy_top"
+	color_src = USE_ONE_COLOR
